@@ -18,7 +18,6 @@ C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\runtimes\linux-x64\n
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\runtimes\osx-x64\native\libglfw.3.dylib
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\runtimes\win-x64\native\glfw3.dll
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\runtimes\win-x86\native\glfw3.dll
-C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\obj\Debug\net5.0\SpriteBatchingPOC.csprojAssemblyReference.cache
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\obj\Debug\net5.0\SpriteBatchingPOC.GeneratedMSBuildEditorConfig.editorconfig
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\obj\Debug\net5.0\SpriteBatchingPOC.AssemblyInfoInputs.cache
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\obj\Debug\net5.0\SpriteBatchingPOC.AssemblyInfo.cs
