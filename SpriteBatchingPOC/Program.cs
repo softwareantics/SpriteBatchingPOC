@@ -4,25 +4,41 @@
     using OpenTK.Mathematics;
     using OpenTK.Windowing.Common;
     using OpenTK.Windowing.Desktop;
+    using SixLabors.ImageSharp;
+    using SixLabors.ImageSharp.PixelFormats;
     using System;
-    using System.Drawing;
     using System.IO;
+    using Color = System.Drawing.Color;
     using Vector2 = System.Numerics.Vector2;
 
     internal sealed class Program : GameWindow
     {
+        private readonly float speed = 4;
+
         private int fragmentShader;
 
         private int program;
 
         private SpriteBatch spriteBatch;
 
+        private int texA;
+
+        private int texB;
+
+        private int texC;
+
+        private int texD;
+
         private int vao;
 
         private int vertexShader;
 
+        private float x = 0;
+
+        private float y = 0;
+
         public Program()
-                    : base(
+                                    : base(
                   GameWindowSettings.Default,
                   new NativeWindowSettings()
                   {
@@ -48,9 +64,13 @@
             GL.ShaderSource(vertexShader, File.ReadAllText("shader.vert"));
             GL.CompileShader(vertexShader);
 
+            Console.WriteLine(GL.GetShaderInfoLog(vertexShader));
+
             fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, File.ReadAllText("shader.frag"));
             GL.CompileShader(fragmentShader);
+
+            Console.WriteLine(GL.GetShaderInfoLog(fragmentShader));
 
             program = GL.CreateProgram();
 
@@ -60,33 +80,63 @@
             GL.LinkProgram(program);
             GL.ValidateProgram(program);
 
+            Console.WriteLine(GL.GetProgramInfoLog(program));
+
             GL.UseProgram(program);
 
-            spriteBatch = new SpriteBatch();
+            for (int i = 0; i < 32; i++)
+            {
+                GL.Uniform1(GL.GetUniformLocation(program, $"u_textures[{i}]"), i);
+            }
+
+            texA = LoadTextureFromFile("default.png");
+            texB = LoadTextureFromFile("wood.png");
+            texC = LoadTextureFromFile("jedi.jpg");
+            texD = LoadTextureFromFile("cheese.jpg");
+
+            spriteBatch = new SpriteBatch(program);
 
             base.OnLoad();
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
-            GL.ClearColor(Color.Black);
+            GL.ClearColor(System.Drawing.Color.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit);
+
+            if (KeyboardState.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.W))
+            {
+                y -= speed;
+            }
+            else if (KeyboardState.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.S))
+            {
+                y += speed;
+            }
+            else if (KeyboardState.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.A))
+            {
+                x += speed;
+            }
+            else if (KeyboardState.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.D))
+            {
+                x -= speed;
+            }
 
             Matrix4 projection = Matrix4.CreateOrthographic(ClientSize.X, ClientSize.Y, -1, 1);
             GL.UniformMatrix4(GL.GetUniformLocation(program, "u_projection"), false, ref projection);
 
-            Matrix4 view = Matrix4.CreateTranslation(Vector3.Zero);
+            Matrix4 view = Matrix4.CreateTranslation(x, y, 0);
             GL.UniformMatrix4(GL.GetUniformLocation(program, "u_view"), false, ref view);
 
             spriteBatch.Begin();
 
             for (int i = 0; i < 10; i++)
             {
-                for (int j = 0; j < 10; j++)
-                {
-                    spriteBatch.Batch(0, Color.Red, new Vector2(0, 0), new Vector2(i * 64, j * 64), 0, new Vector2(32, 32));
-                }
+                spriteBatch.Batch(texA, Color.White, Vector2.Zero, Vector2.Zero, 0, new Vector2(256, 256));
             }
+
+            spriteBatch.Batch(texB, Color.White, Vector2.Zero, new Vector2(256, 0), 0, new Vector2(256, 256));
+            spriteBatch.Batch(texC, Color.White, Vector2.Zero, new Vector2(512, 0), 0, new Vector2(256, 256));
+            spriteBatch.Batch(texD, Color.White, Vector2.Zero, new Vector2(768, 0), 0, new Vector2(256, 256));
 
             spriteBatch.End();
 
@@ -98,6 +148,41 @@
         private static void Main()
         {
             new Program().Run();
+        }
+
+        private int LoadTextureFromFile(string filePath)
+        {
+            FileStream? stream = File.OpenRead(filePath);
+
+            using (Image<Rgba32> image = Image.Load<Rgba32>(stream))
+            {
+                int width = image.Width;
+                int height = image.Height;
+
+                int[] data = new int[width * height];
+
+                // Just simple bit manipulation to convert RGBA to ABGR.
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        Rgba32 color = image[x, y];
+                        data[(y * width) + x] = (color.A << 24) | (color.B << 16) | (color.G << 8) | (color.R << 0);
+                    }
+                }
+
+                GL.CreateTextures(TextureTarget.Texture2D, 1, out int result);
+
+                GL.TextureStorage2D(result, 1, SizedInternalFormat.Rgba8, width, height);
+                GL.TextureParameter(result, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TextureParameter(result, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TextureParameter(result, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+                GL.TextureParameter(result, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+                GL.TextureSubImage2D(result, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+
+                return result;
+            }
         }
     }
 }

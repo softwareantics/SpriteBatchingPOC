@@ -10,5 +10,5 @@ uniform sampler2D u_textures[32];
 
 void main()
 {
-    out_color = in_color;
+    out_color = texture(u_textures[int(in_textureID)], in_texCoord);
 }

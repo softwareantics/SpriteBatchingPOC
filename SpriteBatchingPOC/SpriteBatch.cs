@@ -11,11 +11,15 @@
     {
         private readonly int ebo;
 
+        private readonly int program;
+
+        private readonly IDictionary<int, float> texureToUniformMap;
+
         private readonly int vbo;
 
         private readonly IList<Vertex> vertices;
 
-        public SpriteBatch(int maxCapacity = 1000)
+        public SpriteBatch(int program, int maxCapacity = 10)
         {
             if (maxCapacity <= 0)
             {
@@ -72,6 +76,14 @@
 
             // Fill indices buffer
             GL.NamedBufferData(ebo, indices.Length * sizeof(int), indices, BufferUsageHint.StaticDraw);
+
+            texureToUniformMap = new Dictionary<int, float>();
+            this.program = program;
+
+            for (int i = 0; i < 32; i++)
+            {
+                GL.Uniform1(GL.GetUniformLocation(program, $"u_textures[{i}]"), i);
+            }
         }
 
         public int MaxIndexCount { get; }
@@ -80,7 +92,8 @@
 
         public void Batch(int textureID, Color color, Vector2 origin, Vector2 position, float rotation, Vector2 scale)
         {
-            if (vertices.Count >= MaxVertexCount)
+            if (vertices.Count >= MaxVertexCount ||
+                texureToUniformMap.Count >= 32)
             {
                 End();
                 Begin();
@@ -104,13 +117,27 @@
                 color.B / 255.0f,
                 color.A / 255.0f);
 
+            float tex;
+
+            if (texureToUniformMap.ContainsKey(textureID))
+            {
+                tex = texureToUniformMap[textureID];
+            }
+            else
+            {
+                tex = texureToUniformMap.Count;
+                texureToUniformMap.Add(textureID, tex);
+
+                GL.BindTextureUnit((int)tex, textureID);
+            }
+
             // Top right
             vertices.Add(new Vertex()
             {
                 Position = new Vector2(x + ((dx + w) * cos) - (dy * sin), y + ((dx + w) * sin) + (dy * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(1, 1),
-                TextureIdentifier = textureID,
+                TextureIdentifier = tex,
             });
 
             // Top left
@@ -119,7 +146,7 @@
                 Position = new Vector2(x + (dx * cos) - (dy * sin), y + (dx * sin) + (dy * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(0, 1),
-                TextureIdentifier = textureID,
+                TextureIdentifier = tex,
             });
 
             // Bottom left
@@ -128,7 +155,7 @@
                 Position = new Vector2(x + (dx * cos) - ((dy + h) * sin), y + (dx * sin) + ((dy + h) * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(0, 0),
-                TextureIdentifier = textureID,
+                TextureIdentifier = tex,
             });
 
             // Bottom right
@@ -137,13 +164,14 @@
                 Position = new Vector2(x + ((dx + w) * cos) - ((dy + h) * sin), y + ((dx + w) * sin) + ((dy + h) * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(1, 0),
-                TextureIdentifier = textureID,
+                TextureIdentifier = tex,
             });
         }
 
         public void Begin()
         {
             vertices.Clear();
+            texureToUniformMap.Clear();
         }
 
         public void End()

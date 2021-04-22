@@ -30,3 +30,9 @@ C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\obj\Debug\net5.0\SpriteBatchingPOC.pd
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\obj\Debug\net5.0\SpriteBatchingPOC.genruntimeconfig.cache
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\shader.frag
 C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\shader.vert
+C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\SixLabors.ImageSharp.dll
+C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\Vertex.cs
+C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\wood.png
+C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\cheese.jpg
+C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\default.png
+C:\dev\SpriteBatchingPOC\SpriteBatchingPOC\bin\Debug\net5.0\jedi.jpg
