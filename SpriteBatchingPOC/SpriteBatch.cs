@@ -17,11 +17,13 @@
 
         private readonly int program;
 
-        private readonly IDictionary<int, float> texureToUniformMap;
+        private readonly IDictionary<int, int> slotToTextureMap;
 
         private readonly int vbo;
 
         private readonly IList<Vertex> vertices;
+
+        private int textureSlotIndex;
 
         public SpriteBatch(int program, int maxCapacity = 10)
         {
@@ -81,19 +83,14 @@
             // Fill indices buffer
             GL.NamedBufferData(ebo, indices.Length * sizeof(int), indices, BufferUsageHint.StaticDraw);
 
-            texureToUniformMap = new Dictionary<int, float>();
             this.program = program;
-
-            for (int i = 0; i < 32; i++)
-            {
-                GL.Uniform1(GL.GetUniformLocation(program, $"u_textures[{i}]"), i);
-            }
+            slotToTextureMap = new Dictionary<int, int>();
         }
 
         public void Batch(int textureID, Color color, Vector2 origin, Vector2 position, float rotation, Vector2 scale)
         {
             if (vertices.Count >= maxVertexCount ||
-                texureToUniformMap.Count >= 32)
+                slotToTextureMap.Count >= 32)
             {
                 End();
                 Begin();
@@ -117,18 +114,25 @@
                 color.B / 255.0f,
                 color.A / 255.0f);
 
-            float tex;
+            float textureIndex = 0.0f;
 
-            if (texureToUniformMap.ContainsKey(textureID))
+            for (int i = 0; i < textureSlotIndex; i++)
             {
-                tex = texureToUniformMap[textureID];
+                if (slotToTextureMap.ContainsKey(i))
+                {
+                    if (slotToTextureMap[i] == textureID)
+                    {
+                        textureIndex = i;
+                        break;
+                    }
+                }
             }
-            else
-            {
-                tex = texureToUniformMap.Count;
-                texureToUniformMap.Add(textureID, tex);
 
-                GL.BindTextureUnit((int)tex, textureID);
+            if (textureIndex == 0.0f)
+            {
+                textureIndex = textureSlotIndex;
+                slotToTextureMap.Add(textureSlotIndex, textureID);
+                textureSlotIndex++;
             }
 
             // Top right
@@ -137,7 +141,7 @@
                 Position = new Vector2(x + ((dx + w) * cos) - (dy * sin), y + ((dx + w) * sin) + (dy * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(1, 1),
-                TextureIdentifier = tex,
+                TextureIdentifier = textureIndex,
             });
 
             // Top left
@@ -146,7 +150,7 @@
                 Position = new Vector2(x + (dx * cos) - (dy * sin), y + (dx * sin) + (dy * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(0, 1),
-                TextureIdentifier = tex,
+                TextureIdentifier = textureIndex,
             });
 
             // Bottom left
@@ -155,7 +159,7 @@
                 Position = new Vector2(x + (dx * cos) - ((dy + h) * sin), y + (dx * sin) + ((dy + h) * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(0, 0),
-                TextureIdentifier = tex,
+                TextureIdentifier = textureIndex,
             });
 
             // Bottom right
@@ -164,18 +168,24 @@
                 Position = new Vector2(x + ((dx + w) * cos) - ((dy + h) * sin), y + ((dx + w) * sin) + ((dy + h) * cos)),
                 Color = vecColor,
                 TextureCoordinate = new Vector2(1, 0),
-                TextureIdentifier = tex,
+                TextureIdentifier = textureIndex,
             });
         }
 
         public void Begin()
         {
             vertices.Clear();
-            texureToUniformMap.Clear();
+            slotToTextureMap.Clear();
+            textureSlotIndex = 0;
         }
 
         public void End()
         {
+            for (int i = 0; i < textureSlotIndex; i++)
+            {
+                GL.BindTextureUnit(i, slotToTextureMap[i]);
+            }
+
             GL.NamedBufferSubData(vbo, IntPtr.Zero, vertices.Count * Vertex.SizeInBytes, vertices.ToArray());
             GL.BindVertexBuffer(0, vbo, IntPtr.Zero, Vertex.SizeInBytes);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
