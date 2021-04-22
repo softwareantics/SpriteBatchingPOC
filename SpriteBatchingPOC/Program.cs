@@ -127,17 +127,22 @@
             Matrix4 view = Matrix4.CreateTranslation(x, y, 0);
             GL.UniformMatrix4(GL.GetUniformLocation(program, "u_view"), false, ref view);
 
+            // Resets the vertices and textures that have been batched.
             spriteBatch.Begin();
 
+            // Draw the same sprite ten times, to reach the max batch count. If you change the iterator to a value lower than 10 the two sprites draw correctly.
             for (int i = 0; i < 10; i++)
             {
                 spriteBatch.Batch(texA, Color.White, Vector2.Zero, Vector2.Zero, 0, new Vector2(256, 256));
             }
 
+            // Here is the problem, 'texB' texture is not drawn here, the 'texA' texture is drawn :(
             spriteBatch.Batch(texB, Color.White, Vector2.Zero, new Vector2(256, 0), 0, new Vector2(256, 256));
+
             //spriteBatch.Batch(texC, Color.White, Vector2.Zero, new Vector2(512, 0), 0, new Vector2(256, 256));
             //spriteBatch.Batch(texD, Color.White, Vector2.Zero, new Vector2(768, 0), 0, new Vector2(256, 256));
 
+            // Updates the vertex buffer and draws the contents to the screen.
             spriteBatch.End();
 
             SwapBuffers();
