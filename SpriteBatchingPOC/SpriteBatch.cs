@@ -11,6 +11,10 @@
     {
         private readonly int ebo;
 
+        private readonly int maxIndexCount;
+
+        private readonly int maxVertexCount;
+
         private readonly int program;
 
         private readonly IDictionary<int, float> texureToUniformMap;
@@ -26,8 +30,8 @@
                 throw new ArgumentOutOfRangeException(nameof(maxCapacity), $"The specified {nameof(maxCapacity)} parameter must be greater than zero.");
             }
 
-            MaxVertexCount = maxCapacity * 4;
-            MaxIndexCount = maxCapacity * 6;
+            maxVertexCount = maxCapacity * 4;
+            maxIndexCount = maxCapacity * 6;
 
             vertices = new List<Vertex>();
 
@@ -55,13 +59,13 @@
             GL.CreateBuffers(1, out ebo);
 
             // Empty VBO of vertices
-            GL.NamedBufferData(vbo, MaxVertexCount * Vertex.SizeInBytes, Array.Empty<Vertex>(), BufferUsageHint.DynamicDraw);
+            GL.NamedBufferData(vbo, maxVertexCount * Vertex.SizeInBytes, Array.Empty<Vertex>(), BufferUsageHint.DynamicDraw);
 
-            int[] indices = new int[MaxIndexCount];
+            int[] indices = new int[maxIndexCount];
 
             int offset = 0;
 
-            for (int i = 0; i < MaxIndexCount; i += 6)
+            for (int i = 0; i < maxIndexCount; i += 6)
             {
                 indices[i] = offset;
                 indices[i + 1] = 1 + offset;
@@ -86,13 +90,9 @@
             }
         }
 
-        public int MaxIndexCount { get; }
-
-        public int MaxVertexCount { get; }
-
         public void Batch(int textureID, Color color, Vector2 origin, Vector2 position, float rotation, Vector2 scale)
         {
-            if (vertices.Count >= MaxVertexCount ||
+            if (vertices.Count >= maxVertexCount ||
                 texureToUniformMap.Count >= 32)
             {
                 End();
@@ -179,7 +179,7 @@
             GL.NamedBufferSubData(vbo, IntPtr.Zero, vertices.Count * Vertex.SizeInBytes, vertices.ToArray());
             GL.BindVertexBuffer(0, vbo, IntPtr.Zero, Vertex.SizeInBytes);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
-            GL.DrawElements(PrimitiveType.Triangles, MaxIndexCount, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType.Triangles, maxIndexCount, DrawElementsType.UnsignedInt, 0);
         }
     }
 }

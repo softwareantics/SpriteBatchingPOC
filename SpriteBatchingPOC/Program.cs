@@ -135,8 +135,8 @@
             }
 
             spriteBatch.Batch(texB, Color.White, Vector2.Zero, new Vector2(256, 0), 0, new Vector2(256, 256));
-            spriteBatch.Batch(texC, Color.White, Vector2.Zero, new Vector2(512, 0), 0, new Vector2(256, 256));
-            spriteBatch.Batch(texD, Color.White, Vector2.Zero, new Vector2(768, 0), 0, new Vector2(256, 256));
+            //spriteBatch.Batch(texC, Color.White, Vector2.Zero, new Vector2(512, 0), 0, new Vector2(256, 256));
+            //spriteBatch.Batch(texD, Color.White, Vector2.Zero, new Vector2(768, 0), 0, new Vector2(256, 256));
 
             spriteBatch.End();
 
